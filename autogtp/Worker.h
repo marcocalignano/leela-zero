@@ -23,6 +23,7 @@
 #include "Order.h"
 #include <QThread>
 #include <QMutex>
+#include <QtWidgets/QPlainTextEdit>
 
 class Worker : public QThread {
    Q_OBJECT
@@ -31,7 +32,7 @@ public:
         RUNNING = 0,
         FINISHING
     };
-    Worker(int index, const QString& gpuIndex,const QString& keep);
+    Worker(int index, const QString& gpuIndex,const QString& keep, QPlainTextEdit *tab);
     ~Worker() = default;
     void order(Order o);
     void doFinish() { m_job->finish(); m_state.store(FINISHING); }
@@ -45,6 +46,7 @@ private:
     QString m_gpu;
     Order m_todo;
     Job *m_job;
+    QPlainTextEdit *m_tab;
     void createJob(int type);
 };
 

@@ -22,12 +22,13 @@
 #include <chrono>
 
 
-Worker::Worker(int index,const QString& gpuIndex,const QString& keep) :
+Worker::Worker(int index,const QString& gpuIndex,const QString& keep, QPlainTextEdit *tab) :
     m_index(index),
     m_state(),
     m_keepPath(keep),
     m_gpu(""),
-    m_job(nullptr)
+    m_job(nullptr),
+    m_tab(tab)
 {
     if (!gpuIndex.isEmpty()) {
         m_gpu = " --gpu=" + gpuIndex + " ";
@@ -46,14 +47,17 @@ void Worker::order(Order o)
 
 void Worker::createJob(int type) {
     if (m_job != nullptr) {
+        disconnect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText);
         delete m_job;
     }
     switch(type) {
     case Order::Production:
         m_job = new ProdutionJob(m_gpu);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
         break;
     case Order::Validation:
         m_job = new ValidationJob(m_gpu);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
         break;
     default:
         m_job = nullptr;

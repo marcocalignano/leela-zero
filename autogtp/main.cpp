@@ -17,7 +17,8 @@
     along with Leela Zero.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QtCore/QCoreApplication>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMainWindow>
 #include <QtCore/QTimer>
 #include <QtCore/QTextStream>
 #include <QtCore/QStringList>
@@ -26,6 +27,8 @@
 #include <QFile>
 #include <QDir>
 #include <QDebug>
+#include <QTextBlock>
+#include <QTextCursor>
 #include <chrono>
 #include <QCommandLineParser>
 #include <iostream>
@@ -33,9 +36,13 @@
 #include "Management.h"
 
 constexpr int AUTOGTP_VERSION = 9;
+Q_DECLARE_METATYPE(QTextBlock)
+Q_DECLARE_METATYPE(QTextCursor)
 
 int main(int argc, char *argv[]) {
-    QCoreApplication app(argc, argv);
+    qRegisterMetaType<QTextBlock>();
+    qRegisterMetaType<QTextCursor>();
+    QApplication app(argc, argv);
     app.setApplicationName("autogtp");
     app.setApplicationVersion(QString("v%1").arg(AUTOGTP_VERSION));
 
@@ -107,10 +114,14 @@ int main(int argc, char *argv[]) {
     }
     QMutex mutex;
     Management boss(gpusNum, gamesNum, gpusList, AUTOGTP_VERSION, parser.value(keepSgfOption), parser.value(keepDebugOption), &mutex);
+    QMainWindow main;
+    main.setCentralWidget(&boss);
+    main.show();
     boss.giveAssignments();
     mutex.lock();
     cerr.flush();
     cout.flush();
+    int res = app.exec();
     mutex.unlock();
-    return app.exec();
+    return res;
 }

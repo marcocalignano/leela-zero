@@ -22,7 +22,7 @@
 #include "Result.h"
 #include <QObject>
 #include <QAtomicInt>
-
+#include <QtWidgets/QPlainTextEdit>
 using VersionTuple = std::tuple<int, int>;
 
 class Job : public QObject {
@@ -41,6 +41,9 @@ public:
     virtual Result execute() = 0;
     virtual void init(const QMap<QString,QString> &l);
     void finish() { m_state.store(FINISHING); }
+
+signals:
+    void sendGuiText(const QString &text);
 
 protected:
     QAtomicInt m_state;

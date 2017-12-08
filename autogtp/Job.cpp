@@ -64,6 +64,7 @@ Result ProdutionJob::execute(){
             return res;
         }
         game.readMove();
+        sendGuiText("(" + game.getMove() + ")");
     } while (game.nextMove() && m_state.load() == RUNNING);
     if (m_state.load() == RUNNING) {
         QTextStream(stdout) << "Game has ended." << endl;
@@ -106,12 +107,14 @@ Result ValidationJob::execute(){
            return res;
        }
        first.readMove();
+       sendGuiText("(" + first.getMove() + ")");
        second.setMove(bmove + first.getMove());
        second.move();
        if(!second.waitForMove()) {
            return res;
        }
        second.readMove();
+       sendGuiText("(" + second.getMove() + ")");
        first.setMove(wmove + second.getMove());
        second.nextMove();
    } while (first.nextMove() && m_state.load() == RUNNING);
