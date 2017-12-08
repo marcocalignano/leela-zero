@@ -1,4 +1,5 @@
-QT  -= gui
+QT  += gui
+QT  += widgets
 
 TARGET = autogtp
 CONFIG   += c++14

@@ -26,9 +26,10 @@
 #include <QVector>
 #include <chrono>
 #include <stdexcept>
+#include <QtWidgets/QTabWidget>
 #include "Worker.h"
 
-class Management : public QObject {
+class Management : public QTabWidget {
     Q_OBJECT
 public:
     Management(const int gpus,
@@ -54,6 +55,7 @@ private:
     QMutex* m_mainMutex;
     QMutex m_syncMutex;
     QVector<Worker*> m_gamesThreads;
+    QVector<QPlainTextEdit*> m_textEdit;
     int m_games;
     int m_gpus;
     QStringList m_gpusList;

@@ -39,9 +39,11 @@ Management::Management(const int gpus,
                        const QString& keep,
                        const QString& debug,
                        QMutex* mutex)
-    : m_mainMutex(mutex),
+    : QTabWidget(),
+    m_mainMutex(mutex),
     m_syncMutex(),
     m_gamesThreads(gpus * games),
+    m_textEdit(gpus * games),
     m_games(games),
     m_gpus(gpus),
     m_gpusList(gpuslist),
@@ -65,7 +67,11 @@ void Management::giveAssignments() {
             } else {
                 myGpu = m_gpusList.at(gpu);
             }
-            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu);
+            m_textEdit[thread_index] = new QPlainTextEdit(this);
+            m_textEdit[thread_index]->setReadOnly(true);
+            m_textEdit[thread_index]->setWordWrapMode(QTextOption::WordWrap);
+            addTab(m_textEdit[thread_index], QString::number(thread_index));
+            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath, m_textEdit[thread_index]);
             connect(m_gamesThreads[thread_index],
                     &Worker::resultReady,
                     this,
