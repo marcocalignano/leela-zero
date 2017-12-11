@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
     app.setApplicationName("autogtp");
     app.setApplicationVersion(QString("v%1").arg(AUTOGTP_VERSION));
 
-    QTimer::singleShot(0, &app, SLOT(quit()));
-
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
@@ -118,10 +116,10 @@ int main(int argc, char *argv[]) {
     main.setCentralWidget(&boss);
     main.show();
     boss.giveAssignments();
-    mutex.lock();
     cerr.flush();
     cout.flush();
     int res = app.exec();
+    mutex.lock(); // block from return without GUI
     mutex.unlock();
     return res;
 }
