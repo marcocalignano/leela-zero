@@ -69,6 +69,7 @@ void Management::giveAssignments() {
             }
             m_textEdit[thread_index] = new QPlainTextEdit(this);
             m_textEdit[thread_index]->setReadOnly(true);
+            m_textEdit[thread_index]->setUndoRedoEnabled(false);
             m_textEdit[thread_index]->setWordWrapMode(QTextOption::WordWrap);
             addTab(m_textEdit[thread_index], QString::number(thread_index));
             m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath, m_textEdit[thread_index]);
