@@ -47,17 +47,16 @@ void Worker::order(Order o)
 
 void Worker::createJob(int type) {
     if (m_job != nullptr) {
-        disconnect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText);
         delete m_job;
     }
     switch(type) {
     case Order::Production:
         m_job = new ProdutionJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::QueuedConnection);
         break;
     case Order::Validation:
         m_job = new ValidationJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::QueuedConnection);
         break;
     default:
         m_job = nullptr;

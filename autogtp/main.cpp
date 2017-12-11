@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
     app.setApplicationName("autogtp");
     app.setApplicationVersion(QString("v%1").arg(AUTOGTP_VERSION));
 
-    QTimer::singleShot(0, &app, SLOT(quit()));
-
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
@@ -67,11 +65,14 @@ int main(int argc, char *argv[]) {
     QCommandLineOption keepDebugOption(
         { "d", "debug" }, "Save training and extra debug files after each self-play game.",
                           "output directory");
+    QCommandLineOption GUIOption(
+        "nogui", "Do not show GUI");
 
     parser.addOption(gamesNumOption);
     parser.addOption(gpusOption);
     parser.addOption(keepSgfOption);
     parser.addOption(keepDebugOption);
+    parser.addOption(GUIOption);
 
     // Process the actual command line arguments given by the user
     parser.process(app);
@@ -81,6 +82,7 @@ int main(int argc, char *argv[]) {
     if (gpusNum == 0) {
         gpusNum = 1;
     }
+    bool nogui = parser.isSet(GUIOption);
 
     // Map streams
     QTextStream cin(stdin, QIODevice::ReadOnly);
@@ -113,15 +115,20 @@ int main(int argc, char *argv[]) {
         }
     }
     QMutex mutex;
-    Management boss(gpusNum, gamesNum, gpusList, AUTOGTP_VERSION, parser.value(keepSgfOption), parser.value(keepDebugOption), &mutex);
-    QMainWindow main;
-    main.setCentralWidget(&boss);
-    main.show();
-    boss.giveAssignments();
-    mutex.lock();
+    Management *boss = new Management(gpusNum, gamesNum, gpusList, AUTOGTP_VERSION, parser.value(keepSgfOption), parser.value(keepDebugOption), &mutex);
+    boss->giveAssignments();
     cerr.flush();
     cout.flush();
-    int res = app.exec();
-    mutex.unlock();
+    int res = 0;
+    if (nogui) {
+        mutex.lock(); // block from return without GUI
+        mutex.unlock(); // never reach here
+    } else {
+        mutex.unlock();
+        QMainWindow main;
+        main.setCentralWidget(boss);
+        main.show();
+        res = app.exec();
+    }
     return res;
 }
