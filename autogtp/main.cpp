@@ -36,51 +36,43 @@
 #include "Management.h"
 
 constexpr int AUTOGTP_VERSION = 10;
-Q_DECLARE_METATYPE(QTextBlock)
-Q_DECLARE_METATYPE(QTextCursor)
+//Q_DECLARE_METATYPE(QTextBlock)
+//Q_DECLARE_METATYPE(QTextCursor)
 
 int main(int argc, char *argv[]) {
-    qRegisterMetaType<QTextBlock>();
-    qRegisterMetaType<QTextCursor>();
+//    qRegisterMetaType<QTextBlock>();
+//    qRegisterMetaType<QTextCursor>();
     QApplication app(argc, argv);
     app.setApplicationName("autogtp");
     app.setApplicationVersion(QString("v%1").arg(AUTOGTP_VERSION));
 
-    QTimer::singleShot(0, &app, SLOT(quit()));
+    //QTimer::singleShot(0, &app, SLOT(quit()));
 
-    QCommandLineParser parser;
-    parser.addHelpOption();
-    parser.addVersionOption();
-
-    QCommandLineOption gamesNumOption(
-        {"g", "gamesNum"},
-              "Play 'gamesNum' games on one GPU at the same time.",
-              "num", "1");
-    QCommandLineOption gpusOption(
-        {"u", "gpus"},
-              "Index of the GPU to use for multiple GPUs support.",
-              "num");
-    QCommandLineOption keepSgfOption(
-        {"k", "keepSgf" },
-              "Save SGF files after each self-play game.",
-              "output directory");
-    QCommandLineOption keepDebugOption(
-        { "d", "debug" }, "Save training and extra debug files after each self-play game.",
-                          "output directory");
-
+    /* TODO with graphic interface
+     *
     parser.addOption(gamesNumOption);
     parser.addOption(gpusOption);
     parser.addOption(keepSgfOption);
     parser.addOption(keepDebugOption);
-
-    // Process the actual command line arguments given by the user
-    parser.process(app);
-    int gamesNum = parser.value(gamesNumOption).toInt();
-    QStringList gpusList = parser.values(gpusOption);
-    int gpusNum = gpusList.count();
-    if (gpusNum == 0) {
-        gpusNum = 1;
+    if (parser.isSet(keepSgfOption)) {
+        if (!QDir().mkpath(parser.value(keepSgfOption))) {
+            cerr << "Couldn't create output directory for self-play SGF files!"
+                 << endl;
+            return EXIT_FAILURE;
+        }
     }
+    if (parser.isSet(keepDebugOption)) {
+        if (!QDir().mkpath(parser.value(keepDebugOption))) {
+            cerr << "Couldn't create output directory for self-play Debug files!"
+                 << endl;
+            return EXIT_FAILURE;
+        }
+    }
+    */
+
+    int gamesNum = 3 ;//parser.value(gamesNumOption).toInt();
+    QStringList gpusList();
+    int gpusNum = 1;
 
     // Map streams
     QTextStream cin(stdin, QIODevice::ReadOnly);
@@ -98,30 +90,14 @@ int main(int argc, char *argv[]) {
 #endif
     cerr << "AutoGTP v" << AUTOGTP_VERSION << endl;
     cerr << "Using " << gamesNum << " thread(s)." << endl;
-    if (parser.isSet(keepSgfOption)) {
-        if (!QDir().mkpath(parser.value(keepSgfOption))) {
-            cerr << "Couldn't create output directory for self-play SGF files!"
-                 << endl;
-            return EXIT_FAILURE;
-        }
-    }
-    if (parser.isSet(keepDebugOption)) {
-        if (!QDir().mkpath(parser.value(keepDebugOption))) {
-            cerr << "Couldn't create output directory for self-play Debug files!"
-                 << endl;
-            return EXIT_FAILURE;
-        }
-    }
+
     QMutex mutex;
-    Management boss(gpusNum, gamesNum, gpusList, AUTOGTP_VERSION, parser.value(keepSgfOption), parser.value(keepDebugOption), &mutex);
+    Management boss(gpusNum, gamesNum, QStringList(), AUTOGTP_VERSION, "", "", &mutex);
     QMainWindow main;
     main.setCentralWidget(&boss);
     main.show();
     boss.giveAssignments();
-    mutex.lock();
     cerr.flush();
     cout.flush();
-    int res = app.exec();
-    mutex.unlock();
-    return res;
+    return app.exec();
 }

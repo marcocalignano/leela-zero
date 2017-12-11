@@ -73,7 +73,7 @@ private:
     QString getBoolOption(const QJsonObject &ob, const QString &key, const QString &opt, bool defValue);
     bool networkExists(const QString &name);
     void fetchNetwork(const QString &name);
-    void printTimingInfo(float duration);
+    void printTimingInfo(float duration, int index);
     void uploadData(const QMap<QString,QString> &r, const QMap<QString,QString> &l);
     void uploadResult(const QMap<QString, QString> &r, const QMap<QString, QString> &l);
 };

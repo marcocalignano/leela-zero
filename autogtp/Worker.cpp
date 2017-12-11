@@ -58,11 +58,11 @@ void Worker::createJob(int type) {
     switch(type) {
     case Order::Production:
         m_job = new ProdutionJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText);
         break;
     case Order::Validation:
         m_job = new ValidationJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText, Qt::DirectConnection);
+        connect(m_job, &Job::sendGuiText, m_tab, &QPlainTextEdit::appendPlainText);
         break;
     }
 }

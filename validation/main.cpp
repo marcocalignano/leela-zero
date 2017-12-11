@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     app.setApplicationName("validation");
     app.setApplicationVersion(QString("v%1").arg(VALIDATION_VERSION));
 
-    QTimer::singleShot(0, &app, SLOT(quit()));
+    //QTimer::singleShot(0, &app, SLOT(quit()));
 
     QCommandLineParser parser;
     parser.addHelpOption();

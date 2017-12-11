@@ -39,6 +39,7 @@ public:
     bool writeSgf();
     bool dumpTraining();
     void gameQuit();
+    bool checkGameEnd();
     QString getMove() const { return m_moveDone; }
     QString getFile() const { return m_fileName; }
     bool setMove(const QString& m);

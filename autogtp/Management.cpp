@@ -102,14 +102,14 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
         uploadResult(res.parameters(), ord.parameters());
         break;
     }
-    printTimingInfo(duration);
+    printTimingInfo(duration, index);
     m_gamesThreads[index]->order(getWork());
     m_syncMutex.unlock();
 
 }
 
 
-void  Management::printTimingInfo(float duration) {
+void  Management::printTimingInfo(float duration, int index) {
 
     auto game_end = std::chrono::high_resolution_clock::now();
     auto total_time_s =
@@ -118,13 +118,15 @@ void  Management::printTimingInfo(float duration) {
         std::chrono::duration_cast<std::chrono::minutes>(total_time_s);
     auto total_time_millis =
         std::chrono::duration_cast<std::chrono::milliseconds>(total_time_s);
-    QTextStream(stdout)
-        << m_gamesPlayed << " game(s) (" << m_selfGames << " self played and "
-        << m_matchGames << " matches) played in "
-        << total_time_min.count() << " minutes = "
-        << total_time_s.count() / m_gamesPlayed << " seconds/game, "
-        << total_time_millis.count() / m_movesMade  << " ms/move"
-        << ", last game took " << (int) duration << " seconds." << endl;
+    m_textEdit[index]->appendPlainText(
+            QString::number(m_gamesPlayed) + " game(s) (" +
+            QString::number(m_selfGames) + " self played and " +
+            QString::number(m_matchGames) + " matches) played in " +
+            QString::number(total_time_min.count()) + " minutes = " +
+            QString::number(total_time_s.count() / m_gamesPlayed) + " seconds/game, " +
+            QString::number(total_time_millis.count() / m_movesMade) + " ms/move, last game took " +
+            QString::number((int) duration) + " seconds.\n"
+    );
 }
 
 QString Management::getOption(const QJsonObject &ob, const QString &key, const QString &opt, const QString &defValue) {

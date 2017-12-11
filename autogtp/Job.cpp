@@ -64,10 +64,12 @@ Result ProdutionJob::execute(){
             return res;
         }
         game.readMove();
-        sendGuiText("(" + game.getMove() + ")");
+        sendGuiText(QString::number(game.getMovesCount()) + "(" + game.getMove() + ")");
+        QThread::msleep(20);
     } while (game.nextMove() && m_state.load() == RUNNING);
     if (m_state.load() == RUNNING) {
-        QTextStream(stdout) << "Game has ended." << endl;
+        sendGuiText("Game has ended.\n");
+        QThread::msleep(20);
         if (game.getScore()) {
             game.writeSgf();
             game.dumpTraining();
@@ -78,7 +80,8 @@ Result ProdutionJob::execute(){
     } else {
         QTextStream(stdout) << "Program ends: exiting." << endl;
     }
-    QTextStream(stdout) << "Stopping engine." << endl;
+    sendGuiText("Stopping engine.\n");
+    QThread::msleep(20);
     game.gameQuit();
     return res;
 }
@@ -107,7 +110,8 @@ Result ValidationJob::execute(){
            return res;
        }
        first.readMove();
-       sendGuiText("(" + first.getMove() + ")");
+       sendGuiText(QString::number(first.getMovesCount()) + "(" + first.getMove() + ")");
+       QThread::msleep(20);
        if (first.checkGameEnd()) {
            break;
        }
@@ -117,13 +121,15 @@ Result ValidationJob::execute(){
            return res;
        }
        second.readMove();
-       sendGuiText("(" + second.getMove() + ")");
+       sendGuiText(QString::number(second.getMovesCount()) + "(" + second.getMove() + ")");
+       QThread::msleep(20);
        first.setMove(wmove + second.getMove());
        second.nextMove();
    } while (first.nextMove() && m_state.load() == RUNNING);
 
    if (m_state.load() == RUNNING) {
-       QTextStream(stdout) << "Game has ended." << endl;
+       sendGuiText("Game has ended.\n");
+       QThread::msleep(20);
        res.add("moves", QString::number(first.getMovesCount()));
        if (first.getScore()) {
            res.add("score", first.getResult());
@@ -134,7 +140,8 @@ Result ValidationJob::execute(){
        // Game is finished, send the result
        res.type(Result::Win);
    }
-   QTextStream(stdout) << "Stopping engine." << endl;
+   sendGuiText("Stopping engine.\n");
+   QThread::msleep(20);
    first.gameQuit();
    second.gameQuit();
    return res;
