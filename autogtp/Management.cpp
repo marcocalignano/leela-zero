@@ -67,7 +67,7 @@ void Management::giveAssignments() {
             } else {
                 myGpu = m_gpusList.at(gpu);
             }
-            m_textEdit[thread_index] = new QPlainTextEdit(this);
+            m_textEdit[thread_index] = new GuiReceiver();
             m_textEdit[thread_index]->setReadOnly(true);
             m_textEdit[thread_index]->setWordWrapMode(QTextOption::WordWrap);
             addTab(m_textEdit[thread_index], QString::number(thread_index));

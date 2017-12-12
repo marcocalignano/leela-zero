@@ -64,12 +64,12 @@ Result ProdutionJob::execute(){
             return res;
         }
         game.readMove();
-        sendGuiText(QString::number(game.getMovesCount()) + "(" + game.getMove() + ")");
-        QThread::msleep(20);
+        sendGuiText(QString::number(game.getMovesCount()) + "(" + game.getMove() + ") ");
+
     } while (game.nextMove() && m_state.load() == RUNNING);
     if (m_state.load() == RUNNING) {
         sendGuiText("Game has ended.\n");
-        QThread::msleep(20);
+
         if (game.getScore()) {
             game.writeSgf();
             game.dumpTraining();
@@ -81,7 +81,7 @@ Result ProdutionJob::execute(){
         QTextStream(stdout) << "Program ends: exiting." << endl;
     }
     sendGuiText("Stopping engine.\n");
-    QThread::msleep(20);
+    //QThread::msleep(20);
     game.gameQuit();
     return res;
 }
@@ -110,8 +110,8 @@ Result ValidationJob::execute(){
            return res;
        }
        first.readMove();
-       sendGuiText(QString::number(first.getMovesCount()) + "(" + first.getMove() + ")");
-       QThread::msleep(20);
+       sendGuiText(QString::number(first.getMovesCount()) + "(" + first.getMove() + ") ");
+       //QThread::msleep(20);
        if (first.checkGameEnd()) {
            break;
        }
@@ -121,15 +121,15 @@ Result ValidationJob::execute(){
            return res;
        }
        second.readMove();
-       sendGuiText(QString::number(second.getMovesCount()) + "(" + second.getMove() + ")");
-       QThread::msleep(20);
+       sendGuiText(QString::number(second.getMovesCount()) + "(" + second.getMove() + ") ");
+       //QThread::msleep(20);
        first.setMove(wmove + second.getMove());
        second.nextMove();
    } while (first.nextMove() && m_state.load() == RUNNING);
 
    if (m_state.load() == RUNNING) {
        sendGuiText("Game has ended.\n");
-       QThread::msleep(20);
+       //QThread::msleep(20);
        res.add("moves", QString::number(first.getMovesCount()));
        if (first.getScore()) {
            res.add("score", first.getResult());
@@ -141,7 +141,7 @@ Result ValidationJob::execute(){
        res.type(Result::Win);
    }
    sendGuiText("Stopping engine.\n");
-   QThread::msleep(20);
+   //QThread::msleep(20);
    first.gameQuit();
    second.gameQuit();
    return res;
