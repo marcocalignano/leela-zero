@@ -22,10 +22,9 @@
 #include <chrono>
 
 
-Worker::Worker(int index,const QString& gpuIndex,const QString& keep) :
+Worker::Worker(int index,const QString& gpuIndex) :
     m_index(index),
     m_state(),
-    m_keepPath(keep),
     m_gpu(""),
     m_job(nullptr)
 {

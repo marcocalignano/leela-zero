@@ -65,7 +65,7 @@ void Management::giveAssignments() {
             } else {
                 myGpu = m_gpusList.at(gpu);
             }
-            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath);
+            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu);
             connect(m_gamesThreads[thread_index],
                     &Worker::resultReady,
                     this,
@@ -420,7 +420,9 @@ void Management::uploadResult(const QMap<QString,QString> &r, const QMap<QString
     prog_cmdline.append(" -F random_seed="+ l["rndSeed"]);
     prog_cmdline.append(" -F sgf=@"+ sgf_file);
     prog_cmdline.append(" http://zero-test.sjeng.org/submit-match");
-
+    if (!m_keepPath.isEmpty()) {
+        QFile(sgf_file).copy(m_keepPath + '/' + sgf_file);
+    }
     QTextStream(stdout) << prog_cmdline << endl;
     QProcess curl;
     curl.start(prog_cmdline);
@@ -503,7 +505,6 @@ void Management::uploadData(const QMap<QString,QString> &r, const QMap<QString,Q
                 << curl.exitCode() << endl;
             QTextStream(stdout) << "Continuing..." << endl;
         }
-
         QByteArray output = curl.readAllStandardOutput();
         QString outstr(output);
         QTextStream(stdout) << outstr;
