@@ -10,7 +10,7 @@ enum
     BOARD_PLAY
 };
 
-class Player : public QObject
+/*class Player : public QObject
 {
     Q_OBJECT
 
@@ -41,7 +41,7 @@ public slots:
     void readStandardError();
 
 };
-
+*/
 class Widget : public QWidget
 {
 public:
@@ -49,13 +49,13 @@ public:
     Widget(QWidget *parent = NULL);
 
     void ShowTable(int init = 0);
-    void SetTitle(const QString &str);
-    void GetRespond(const QString &str, int color);
+//    void SetTitle(const QString &str);
+//    void GetRespond(const QString &str, int color);
 
-    int Read(const QString &file, int k = 0);
+//    int Read(const QString &file, int k = 0);
 
     Board Child;
-    Player *Play[3];
+//    Player *Play[3];
 
     enum
     {
@@ -75,12 +75,12 @@ public:
 protected:
 
     void paintEvent(QPaintEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void keyPressEvent(QKeyEvent *event);
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dropEvent(QDropEvent *event);
-    void wheelEvent(QWheelEvent *event);
+  //  void mouseMoveEvent(QMouseEvent *event);
+  //  void mousePressEvent(QMouseEvent *event);
+  //  void keyPressEvent(QKeyEvent *event);
+  //  void dragEnterEvent(QDragEnterEvent *event);
+  //  void dropEvent(QDropEvent *event);
+  //  void wheelEvent(QWheelEvent *event);
 
     QPoint Cursor[2];
 
@@ -94,6 +94,7 @@ protected:
 
 };
 
+/*
 class Window : public QMainWindow
 {
 public:
@@ -112,5 +113,5 @@ protected:
     void paintEvent(QPaintEvent *event);
 
 };
-
+*/
 #endif

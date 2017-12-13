@@ -19,6 +19,6 @@ void GuiReceiver::getGuiString(const QString &s) {
     int x = l[1].at(0).unicode() - QChar('A').unicode();
     l[1].remove(0,1);
     l[1].remove(l[1].count()-2, 2);
-    Child.Play(x, l[1].toInt(), color);
+    Child.Play(x, l[1].toInt()-1, color);
     repaint();
 }

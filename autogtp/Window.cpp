@@ -1,5 +1,6 @@
 #include "Window.h"
 
+/*
 Player::Player(QWidget *parent, int color, int size, double komi) : QObject(parent)
 {
     Process = NULL;
@@ -114,7 +115,7 @@ void Player::readStandardOutput()
     }
 
     if (Respond.endsWith("\n\n")) {
-        ((Widget*) parent())->GetRespond(Respond.trimmed(), Side);
+//        ((Widget*) parent())->GetRespond(Respond.trimmed(), Side);
     }
 }
 
@@ -130,6 +131,7 @@ void Player::readStandardError()
         if (ScrollDown) TextEdit->verticalScrollBar()->setValue(TextEdit->verticalScrollBar()->maximum());
     }
 }
+*/
 
 Widget::Widget(QWidget *parent) : QWidget(parent)
 {
@@ -139,12 +141,12 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     TextEdit = NULL;
     Table = NULL;
 
-    Play[1] = Play[2] = NULL;
+//    Play[1] = Play[2] = NULL;
 
     Child.Reset();
     Child.BOARD_DATE = QDate::currentDate().toString("yyyy-MM-dd");
 
-    Mode = 0;
+    Mode = BOARD_FILE;
     View = 0;
     Side = 0; // play black & white
 
@@ -152,7 +154,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     Cursor[1] = QPoint(-1, -1);
 }
 
-int Widget::Read(const QString &str, int k)
+/*int Widget::Read(const QString &str, int k)
 {
     if (Mode == BOARD_PLAY) {
 
@@ -175,7 +177,7 @@ void Widget::SetTitle(const QString &str)
     if (str.isEmpty()) parentWidget()->setWindowTitle(((Window*) parent())->Title);
     else parentWidget()->setWindowTitle(((Window*) parent())->Title + " - " + Title);
 }
-
+*/
 void Widget::ShowTable(int init)
 {
     if (Table) {
@@ -236,6 +238,7 @@ void Widget::ShowTable(int init)
     View &= ~VIEW_SCORE;
     repaint();
 }
+/*
 
 void Widget::GetRespond(const QString &str, int color)
 {
@@ -476,7 +479,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     if (!Title.isEmpty() && event->key() != Qt::Key_Control && event->key() != Qt::Key_Alt)
         SetTitle("");
 }
-
+*/
 void Widget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -669,6 +672,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
 }
 
+/*
 Window::Window()
 {
     Child = new Widget(this);
@@ -708,6 +712,7 @@ void Window::CreateDock()
         addDockWidget(Qt::LeftDockWidgetArea, dock);
     }
     else if (Child->Mode == BOARD_PLAY) {
+    
         if (Child->Play[BLACK]) {
             QDockWidget *dock = new QDockWidget(" ", this);
             dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
@@ -725,5 +730,7 @@ void Window::CreateDock()
             dock->setWidget(Child->Play[WHITE]->TextEdit);
             addDockWidget(Qt::RightDockWidgetArea, dock);
         }
+        
     }
 }
+*/
