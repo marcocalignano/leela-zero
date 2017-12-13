@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
     Management boss(gpusNum, gamesNum, QStringList(), AUTOGTP_VERSION, "", "", &mutex);
     QMainWindow main;
     main.setCentralWidget(&boss);
+    main.resize(800,800);
     main.show();
     boss.giveAssignments();
     cerr.flush();

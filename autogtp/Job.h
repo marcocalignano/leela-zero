@@ -43,7 +43,7 @@ public:
     void finish() { m_state.store(FINISHING); }
 
 signals:
-    void sendGuiText(const QString &text);
+    void sendGuiMove(const QString &m, int count);
 
 protected:
     QAtomicInt m_state;

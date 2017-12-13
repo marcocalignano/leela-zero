@@ -1,7 +1,7 @@
 #include "GuiReceiver.h"
 
 GuiReceiver::GuiReceiver() :
-Widget()
+BoardWidget()
 {
     Table = new QTableWidget();
     Table->setFrameStyle(QFrame::NoFrame);
@@ -10,15 +10,12 @@ Widget()
     TextEdit->setFontPointSize(10);
 }
 
-void GuiReceiver::getGuiString(const QString &s) {
-    QStringList l = s.split('(');
-    int color = Color::BLACK;
-    if((l[0].toInt() % 2) == 0) {
-        color = Color::WHITE;
-    }         
-    int x = l[1].at(0).unicode() - QChar('A').unicode();
-    l[1].remove(0,1);
-    l[1].remove(l[1].count()-2, 2);
-    Child.Play(x, l[1].toInt()-1, color);
+void GuiReceiver::getGuiMove(const QString &m, int moves) {
+    QString tmp = m;
+    int x = m.at(0).unicode() - QChar('A').unicode() - 1;
+    int y = 19 - tmp.remove(0,1).toInt();
+    int color = ((moves % 2) == 0) ?
+                Board::Color::WHITE : Board::Color::BLACK;
+    Child.Play(x, y, color);
     repaint();
 }

@@ -3,6 +3,7 @@
 
 #include <QtCore>
 #include <QColor>
+#include <QtWidgets>
 
 #define MAX_SIZE 19
 #define MIN_SIZE 2
@@ -14,17 +15,6 @@
 // Simple List
 inline void SLIST_CLEAR(int *ls) { ls[0] = 0; }
 inline void SLIST_PUSH(int *ls, int i) { ls[++ls[0]] = i; }
-inline int SLIST_POP(int *ls) { return ls[ls[0]--]; }
-inline void SLIST_ADD(int *ls, int i) {
-    for (int k = 1; k <= ls[0]; k++) if (ls[k] == i) return;
-    ls[++ls[0]] = i; }
-inline void SLIST_DELETE(int *ls, int i) { ls[i] = ls[ls[0]--]; }
-inline int SLIST_RAND(int *ls) { return rand() % ls[0] + 1; }
-inline void SLIST_MERGE(int *ls, int *ls2) {
-    for (int k = 1; k <= ls2[0]; k++) ls[++ls[0]] = ls2[k]; }
-inline void SLIST_PRINT(int *ls) {
-    for (int k = 1; k <= ls[0]; k++) printf("%d ", ls[k]); printf("\n"); }
-
 enum Color
 {
     EMPTY, BLACK, WHITE, OUT
@@ -40,6 +30,16 @@ class Board
 {
 public:
 
+    enum Color
+    {
+        EMPTY, BLACK, WHITE, OUT
+    };
+
+    enum
+    {
+        BOTH_AREA, BLACK_AREA, WHITE_AREA,
+        BLACK_DEAD, WHITE_DEAD
+    };
     enum
     {
         PASS, RESIGN
@@ -96,33 +96,14 @@ public:
     void Clear();
     void ClearMark();
     void Reset(int x = MAX_SIZE, int y = MAX_SIZE);
-
-    int Read(const QString &str, int k = 0);
-    int Write(const QString &str);
-
     int GetColor(int x, int y);
     int GetPoint(int x, int y);
     int CheckBound(int x, int y);
-    int Play(int x, int y, int color, int mode = 0);
-    int Append(int x, int y, int color, int i = 1);
-    int Add(int x, int y, int color);
     int Remove(int z, int color, GoNode &node);
-    int CheckPlay(int z, int color, int other);
-    int CheckRemove(int z, int color);
-    int SetHandicap(int n);
-
     int GetProp(QString &str, int i, int j);
-    QString GetText(QString &str, int i, int j);
     GoProp MakeProp(int label, int value, int x, int y, int index = 0);
-
-    int Start();
-    int Forward(int k = 1);
-    int End();
-    int Undo(int k = 1);
-
     void Cut();
-    void Rand();
-    void Rand(int total);
+    int Play(int x, int y, int color, int mode = 0);
 
     int Width, Height, Size;
     int Path;
@@ -154,6 +135,55 @@ public:
     QString BOARD_HANDICAP, BOARD_KOMI;
     QString BOARD_RESULT, BOARD_FILE;
     QString BOARD_SCORE;
+
+};
+
+
+
+
+
+enum
+{
+    BOARD_FILE = 1,
+    BOARD_PLAY
+};
+
+class BoardWidget : public QWidget
+{
+public:
+
+    BoardWidget(QWidget *parent = NULL);
+
+    void ShowTable(int init = 0);
+    Board Child;
+    enum
+    {
+        VIEW_LABEL = 1,
+        VIEW_SCORE = 2,
+        VIEW_MARK = 4,
+        PLAY_PAUSE = 32
+    };
+
+    int Mode, View;
+    int Side;
+
+    QString Title;
+    QTextEdit *TextEdit;
+    QTableWidget *Table;
+
+protected:
+
+    void paintEvent(QPaintEvent *event);
+
+    QPoint Cursor[2];
+
+    int GridSize;
+
+    int BOARD_TOP, BOARD_LEFT;
+    int BOARD_DOWN, BOARD_RIGHT;
+    int TABLE_TOP, TABLE_LEFT;
+    int TABLE_DOWN, TABLE_RIGHT;
+    int TABLE_WIDTH;
 
 };
 

@@ -68,7 +68,7 @@ void Management::giveAssignments() {
                 myGpu = m_gpusList.at(gpu);
             }
             m_textEdit[thread_index] = new GuiReceiver();
-            addTab(m_textEdit[thread_index], QString::number(thread_index) + 1);
+            addTab(m_textEdit[thread_index], QString::number(thread_index + 1));
             m_textEdit[thread_index]->ShowTable();
             m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath, m_textEdit[thread_index]);
             connect(m_gamesThreads[thread_index],

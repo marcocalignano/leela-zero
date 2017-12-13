@@ -52,17 +52,17 @@ void Worker::order(Order o)
 
 void Worker::createJob(int type) {
     if (m_job != nullptr) {
-        disconnect(m_job, &Job::sendGuiText, m_receiver, &GuiReceiver::getGuiString);
+        disconnect(m_job, &Job::sendGuiMove, m_receiver, &GuiReceiver::getGuiMove);
         delete m_job;
     }
     switch(type) {
     case Order::Production:
         m_job = new ProdutionJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_receiver, &GuiReceiver::getGuiString);
+        connect(m_job, &Job::sendGuiMove, m_receiver, &GuiReceiver::getGuiMove);
         break;
     case Order::Validation:
         m_job = new ValidationJob(m_gpu);
-        connect(m_job, &Job::sendGuiText, m_receiver, &GuiReceiver::getGuiString);
+        connect(m_job, &Job::sendGuiMove, m_receiver, &GuiReceiver::getGuiMove);
         break;
     }
 }

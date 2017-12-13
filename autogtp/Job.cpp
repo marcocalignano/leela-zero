@@ -18,6 +18,7 @@
 
 #include "Job.h"
 #include "Game.h"
+#include "Board.h"
 #include <QTextStream>
 #include <chrono>
 
@@ -64,12 +65,10 @@ Result ProdutionJob::execute(){
             return res;
         }
         game.readMove();
-        sendGuiText(QString::number(game.getMovesCount()) + "(" + game.getMove() + ") ");
-
+        sendGuiMove(game.getMove(), game.getMovesCount());
     } while (game.nextMove() && m_state.load() == RUNNING);
     if (m_state.load() == RUNNING) {
-        sendGuiText("Game has ended.\n");
-
+//        sendGuiMove("Game has ended.\n");
         if (game.getScore()) {
             game.writeSgf();
             game.dumpTraining();
@@ -80,7 +79,7 @@ Result ProdutionJob::execute(){
     } else {
         QTextStream(stdout) << "Program ends: exiting." << endl;
     }
-    sendGuiText("Stopping engine.\n");
+//    sendGuiMove("Stopping engine.\n");
     //QThread::msleep(20);
     game.gameQuit();
     return res;
@@ -110,8 +109,7 @@ Result ValidationJob::execute(){
            return res;
        }
        first.readMove();
-       sendGuiText(QString::number(first.getMovesCount()) + "(" + first.getMove() + ") ");
-       //QThread::msleep(20);
+       sendGuiMove(first.getMove(), first.getMovesCount());
        if (first.checkGameEnd()) {
            break;
        }
@@ -121,14 +119,13 @@ Result ValidationJob::execute(){
            return res;
        }
        second.readMove();
-       sendGuiText(QString::number(second.getMovesCount()) + "(" + second.getMove() + ") ");
-       //QThread::msleep(20);
+       sendGuiMove(second.getMove(), second.getMovesCount());
        first.setMove(wmove + second.getMove());
        second.nextMove();
    } while (first.nextMove() && m_state.load() == RUNNING);
 
    if (m_state.load() == RUNNING) {
-       sendGuiText("Game has ended.\n");
+    //  sendGuiMove("Game has ended.\n");
        //QThread::msleep(20);
        res.add("moves", QString::number(first.getMovesCount()));
        if (first.getScore()) {
@@ -140,7 +137,7 @@ Result ValidationJob::execute(){
        // Game is finished, send the result
        res.type(Result::Win);
    }
-   sendGuiText("Stopping engine.\n");
+ //  sendGuiMove("Stopping engine.\n");
    //QThread::msleep(20);
    first.gameQuit();
    second.gameQuit();

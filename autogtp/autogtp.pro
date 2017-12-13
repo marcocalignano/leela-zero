@@ -14,9 +14,8 @@ SOURCES += main.cpp \
     Worker.cpp \
     Job.cpp \
     Management.cpp \
-    Guireceiver.cpp \
-    Board.cpp \ 
-    Window.cpp
+    GuiReceiver.cpp \
+    Board.cpp  
 
 HEADERS += \
     Game.h \
@@ -26,5 +25,4 @@ HEADERS += \
     Result.h \
     Management.h \
     GuiReceiver.h \
-    Board.h \
-    window.h
+    Board.h

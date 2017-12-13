@@ -1,15 +1,15 @@
 #ifndef GUIRECEIVER_H
 #define GUIRECEIVER_H
 
-#include "Window.h"
+#include "Board.h"
 
-class GuiReceiver : public Widget
+class GuiReceiver : public BoardWidget
 {
 public:
     GuiReceiver();
     ~GuiReceiver() = default;
 public slots:
-    void getGuiString(const QString &s);
+    void getGuiMove(const QString &m, int moves);
 };
 
 #endif // GUIRECEIVER_H
