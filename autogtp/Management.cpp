@@ -43,7 +43,7 @@ Management::Management(const int gpus,
     m_mainMutex(mutex),
     m_syncMutex(),
     m_gamesThreads(gpus * games),
-    m_textEdit(gpus * games),
+    m_guiReceivers(gpus * games),
     m_games(games),
     m_gpus(gpus),
     m_gpusList(gpuslist),
@@ -67,10 +67,10 @@ void Management::giveAssignments() {
             } else {
                 myGpu = m_gpusList.at(gpu);
             }
-            m_textEdit[thread_index] = new GuiReceiver();
-            addTab(m_textEdit[thread_index], QString::number(thread_index + 1));
-            m_textEdit[thread_index]->ShowTable();
-            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath, m_textEdit[thread_index]);
+            m_guiReceivers[thread_index] = new GuiReceiver();
+            addTab(m_guiReceivers[thread_index], QString::number(thread_index + 1));
+            m_guiReceivers[thread_index]->ShowTable();
+            m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_guiReceivers[thread_index]);
             connect(m_gamesThreads[thread_index],
                     &Worker::resultReady,
                     this,

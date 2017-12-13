@@ -56,7 +56,7 @@ private:
     QMutex* m_mainMutex;
     QMutex m_syncMutex;
     QVector<Worker*> m_gamesThreads;
-    QVector<GuiReceiver*> m_textEdit;
+    QVector<GuiReceiver*> m_guiReceivers;
     int m_games;
     int m_gpus;
     QStringList m_gpusList;

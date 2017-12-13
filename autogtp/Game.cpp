@@ -242,12 +242,6 @@ bool Game::setMove(const QString& m) {
     return true;
 }
 
-bool Game::checkGameEnd() {
-    return (m_resignation ||
-            m_passes > 1 ||
-            m_moveNum > (19 * 19 * 2));
-}
-
 bool Game::nextMove() {
     if(checkGameEnd()) {
         return false;
