@@ -1,9 +1,9 @@
 #ifndef GUIRECEIVER_H
 #define GUIRECEIVER_H
 
-#include <QPlainTextEdit>
+#include "Window.h"
 
-class GuiReceiver : public QPlainTextEdit
+class GuiReceiver : public Widget
 {
 public:
     GuiReceiver();

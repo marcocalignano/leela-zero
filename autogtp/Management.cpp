@@ -68,9 +68,8 @@ void Management::giveAssignments() {
                 myGpu = m_gpusList.at(gpu);
             }
             m_textEdit[thread_index] = new GuiReceiver();
-            m_textEdit[thread_index]->setReadOnly(true);
-            m_textEdit[thread_index]->setWordWrapMode(QTextOption::WordWrap);
-            addTab(m_textEdit[thread_index], QString::number(thread_index));
+            addTab(m_textEdit[thread_index], QString::number(thread_index) + 1);
+            m_textEdit[thread_index]->ShowTable();
             m_gamesThreads[thread_index] = new Worker(thread_index, myGpu, m_keepPath, m_textEdit[thread_index]);
             connect(m_gamesThreads[thread_index],
                     &Worker::resultReady,
@@ -118,7 +117,7 @@ void  Management::printTimingInfo(float duration, int index) {
         std::chrono::duration_cast<std::chrono::minutes>(total_time_s);
     auto total_time_millis =
         std::chrono::duration_cast<std::chrono::milliseconds>(total_time_s);
-    m_textEdit[index]->appendPlainText(
+/*    m_textEdit[index]->appendPlainText(
             QString::number(m_gamesPlayed) + " game(s) (" +
             QString::number(m_selfGames) + " self played and " +
             QString::number(m_matchGames) + " matches) played in " +
@@ -126,7 +125,7 @@ void  Management::printTimingInfo(float duration, int index) {
             QString::number(total_time_s.count() / m_gamesPlayed) + " seconds/game, " +
             QString::number(total_time_millis.count() / m_movesMade) + " ms/move, last game took " +
             QString::number((int) duration) + " seconds.\n"
-    );
+    );*/
 }
 
 QString Management::getOption(const QJsonObject &ob, const QString &key, const QString &opt, const QString &defValue) {
