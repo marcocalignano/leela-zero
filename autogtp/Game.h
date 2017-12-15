@@ -35,6 +35,7 @@ public:
     bool readMove();
     bool nextMove();
     bool getScore();
+    bool loadSgf(const QString &fileName);
     bool writeSgf();
     bool fixSgf(QString& weightFile, bool resignation);
     bool dumpTraining();
@@ -48,6 +49,7 @@ public:
     int getWinner();
     QString getWinnerName() const { return m_winner; }
     int getMovesCount() const { return m_moveNum; }
+    void setMovesCount(int moves);
     QString getResult() const { return m_result.trimmed(); }
     enum {
         BLACK = 0,
