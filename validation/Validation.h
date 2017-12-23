@@ -42,6 +42,7 @@ public:
               const QString& firstNet,
               const QString& secondNet,
               const QString& keep,
+              const QString& gnuGoLevel,
               int expected);
     void run() override;
     void doFinish() { m_state.store(FINISHING); }
@@ -55,6 +56,7 @@ private:
     QString m_keepPath;
     QString m_option;
     QAtomicInt m_state;
+    QString m_gnuGoLevel;
 };
 
 class Validation : public QObject {
@@ -66,6 +68,7 @@ public:
                const QString& firstNet,
                const QString& secondNet,
                const QString& keep,
+               const QString& gnuGoLevel,
                QMutex* mutex);
     ~Validation() = default;
     void startGames();
@@ -86,6 +89,7 @@ private:
     QString m_firstNet;
     QString m_secondNet;
     QString m_keepPath;
+    QString m_gnuGoLevel;
     void quitThreads();
 };
 

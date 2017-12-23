@@ -26,12 +26,18 @@ const VersionTuple min_leelaz_version{0, 9};
 
 void ValidationWorker::run() {
     do {
-        Game first(m_firstNet,  m_option);
+        QString opt = m_option;
+        if(m_firstNet == "GnuGo")
+            opt = m_gnuGoLevel;
+        Game first(m_firstNet,  opt);
         if (!first.gameStart(min_leelaz_version)) {
             emit resultReady(Sprt::NoResult, Game::BLACK);
             return;
         }
-        Game second(m_secondNet, m_option);
+        opt = m_option;
+        if(m_secondNet == "GnuGo")
+            opt = m_gnuGoLevel;
+        Game second(m_secondNet, opt);
         if (!second.gameStart(min_leelaz_version)) {
             emit resultReady(Sprt::NoResult, Game::BLACK);
             return;
@@ -100,6 +106,7 @@ void ValidationWorker::init(const QString& gpuIndex,
                             const QString& firstNet,
                             const QString& secondNet,
                             const QString& keep,
+                            const QString& gnuGoLevel,
                             const int expected) {
     m_option = " -g  -p 1600 --noponder -t 1 -q -d -r 0 -w ";
     if (!gpuIndex.isEmpty()) {
@@ -109,6 +116,7 @@ void ValidationWorker::init(const QString& gpuIndex,
     m_secondNet = secondNet;
     m_expected = expected;
     m_keepPath = keep;
+    m_gnuGoLevel = gnuGoLevel;
     m_state.store(RUNNING);
 }
 
@@ -118,6 +126,7 @@ Validation::Validation(const int gpus,
                        const QString& firstNet,
                        const QString& secondNet,
                        const QString& keep,
+                       const QString& gnuGoLevel,
                        QMutex* mutex) :
     m_mainMutex(mutex),
     m_syncMutex(),
@@ -127,7 +136,8 @@ Validation::Validation(const int gpus,
     m_gpusList(gpuslist),
     m_firstNet(firstNet),
     m_secondNet(secondNet),
-    m_keepPath(keep) {
+    m_keepPath(keep),
+    m_gnuGoLevel(gnuGoLevel) {
     m_statistic.initialize(0.0, 35.0, 0.05, 0.05);
     m_statistic.addGameResult(Sprt::Draw);
 }
@@ -159,7 +169,7 @@ void Validation::startGames() {
             } else {
                 myGpu = m_gpusList.at(gpu);
             }
-            m_gamesThreads[thread_index].init(myGpu, n1, n2, m_keepPath, expected);
+            m_gamesThreads[thread_index].init(myGpu, n1, n2, m_keepPath, m_gnuGoLevel, expected);
             m_gamesThreads[thread_index].start();
         }
     }

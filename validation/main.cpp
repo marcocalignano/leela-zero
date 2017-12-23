@@ -61,15 +61,22 @@ int main(int argc, char *argv[]) {
         {"k", "keepSgf" },
             "Save SGF files after each self-play game.",
             "output directory");
+    QCommandLineOption gnuGoOption(
+        {"o", "gnuGo"},
+            "Plays against gnuGo at the given level.",
+            "level", "1");
 
     parser.addOption(gamesNumOption);
     parser.addOption(gpusOption);
     parser.addOption(networkOption);
     parser.addOption(keepSgfOption);
+    parser.addOption(gnuGoOption);
 
     // Process the actual command line arguments given by the user
     parser.process(app);
     QStringList netList = parser.values(networkOption);
+    if(parser.isSet(gnuGoOption))
+        netList << "GnuGo";
     if(netList.count() != 2) {
         parser.showHelp();
     }
@@ -94,7 +101,9 @@ int main(int argc, char *argv[]) {
     QMutex mutex;
     Validation validate(gpusNum, gamesNum, gpusList,
                         netList.at(0), netList.at(1),
-                        parser.value(keepSgfOption), &mutex);
+                        parser.value(keepSgfOption),
+                        parser.value(gnuGoOption),
+                        &mutex);
     validate.startGames();
     mutex.lock();
     cerr.flush();
