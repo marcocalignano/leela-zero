@@ -38,7 +38,7 @@ Game::Game(const QString& weights, const QString& opt) :
     m_cmdLine.append(opt);
     m_cmdLine.append(weights);
     if(weights == "GnuGo") {
-        m_cmdLine = "gnugo --mode gtp --level ";
+        m_cmdLine = "gnugo --mode gtp --chinese-rules --capture-all-dead --level ";
         m_cmdLine.append(opt);
     }
     m_fileName = QUuid::createUuid().toRfc4122().toHex();

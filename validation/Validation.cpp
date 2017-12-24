@@ -51,10 +51,10 @@ void ValidationWorker::run() {
                 return;
             }
             first.readMove();
+            second.setMove(bmove + first.getMove());
             if(first.checkGameEnd()) {
                 break;
             }
-            second.setMove(bmove + first.getMove());
             second.move();
             if(!second.waitForMove()) {
                 emit resultReady(Sprt::NoResult, Game::BLACK);
@@ -68,17 +68,20 @@ void ValidationWorker::run() {
         if (m_state.load() == RUNNING) {
             QTextStream(stdout) << "Game has ended." << endl;
             int result = 0;
-            if (first.getScore()) {
-                result = first.getWinner();
+            Game *scoring = &first;
+            if(m_firstNet == "GnuGo")
+                scoring = &second;
+            if (scoring->getScore()) {
+                result = scoring->getWinner();
                 if (!m_keepPath.isEmpty()) {
-                    first.writeSgf();
+                    scoring->writeSgf();
                     QString prefix = m_keepPath + '/';
                     if(m_expected == Game::BLACK) {
                         prefix.append("black_");
                     } else {
                         prefix.append("white_");
                     }
-                    QFile(first.getFile() + ".sgf").rename(prefix + first.getFile() + ".sgf");
+                    QFile(scoring->getFile() + ".sgf").rename(prefix + scoring->getFile() + ".sgf");
                 }
             }
             QTextStream(stdout) << "Stopping engine." << endl;
