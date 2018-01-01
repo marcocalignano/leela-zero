@@ -274,6 +274,7 @@ Order Management::getWorkInternal() {
         QTextStream(stdout) << "first network: " << net1 << "." << endl;
         QTextStream(stdout) << "second network " << net2 << "." << endl;
     }
+    QTextStream(stdout) << "Leelaz options: " << options << endl;
     return o;
 }
 
