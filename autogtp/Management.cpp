@@ -110,20 +110,43 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
 
 void  Management::printTimingInfo(float duration) {
 
+    std::chrono::duration<float> dur(duration);
     auto game_end = std::chrono::high_resolution_clock::now();
-    auto total_time_s =
-        std::chrono::duration_cast<std::chrono::seconds>(game_end - m_start);
-    auto total_time_min =
-        std::chrono::duration_cast<std::chrono::minutes>(total_time_s);
+
     auto total_time_millis =
-        std::chrono::duration_cast<std::chrono::milliseconds>(total_time_s);
+        std::chrono::duration_cast<std::chrono::milliseconds>(game_end - m_start);
+    auto time_millis = total_time_millis;
+
+    auto time_game_s =
+        std::chrono::duration_cast<std::chrono::seconds>(dur);
+    auto time_game_m =
+        std::chrono::duration_cast<std::chrono::minutes>(time_game_s);
+    time_game_s -= time_game_m;
+
+    auto time_xgame_s =
+        std::chrono::duration_cast<std::chrono::seconds>(total_time_millis / m_gamesPlayed);
+    auto total_xgame_m =
+        std::chrono::duration_cast<std::chrono::minutes>(time_xgame_s);
+    time_xgame_s -= total_xgame_m;
+    auto total_time_h =
+        std::chrono::duration_cast<std::chrono::hours>(total_time_millis);
+    total_time_millis -= total_time_h;
+    auto total_time_min =
+        std::chrono::duration_cast<std::chrono::minutes>(total_time_millis);
+    total_time_millis -= total_time_h;
+
+
     QTextStream(stdout)
         << m_gamesPlayed << " game(s) (" << m_selfGames << " self played and "
         << m_matchGames << " matches) played in "
+        << total_time_h.count() << " hours and "
         << total_time_min.count() << " minutes = "
-        << total_time_s.count() / m_gamesPlayed << " seconds/game, "
-        << total_time_millis.count() / m_movesMade.load()  << " ms/move"
-        << ", last game took " << (int) duration << " seconds." << endl;
+        << total_xgame_m.count() << " minutes and "
+        << time_xgame_s.count() << " seconds per game, "
+        << time_millis.count() / m_movesMade.load()  << " ms/move"
+        << ", last game took "
+        << time_game_m.count() << " minutes and "
+        << time_game_s.count() << " seconds." << endl;
 }
 
 QString Management::getOption(const QJsonObject &ob, const QString &key, const QString &opt, const QString &defValue) {
