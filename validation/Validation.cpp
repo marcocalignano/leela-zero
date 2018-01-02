@@ -48,7 +48,7 @@ void ValidationWorker::run() {
             first.move();
             if(!first.waitForMove()) {
                 emit resultReady(Sprt::NoResult, Game::BLACK);
-                return;
+                m_state.store(RESUMING);
             }
             first.readMove();
             second.setMove(bmove + first.getMove());
@@ -58,7 +58,7 @@ void ValidationWorker::run() {
             second.move();
             if(!second.waitForMove()) {
                 emit resultReady(Sprt::NoResult, Game::BLACK);
-                return;
+                m_state.store(RESUMING);
             }
             second.readMove();
             first.setMove(wmove + second.getMove());
@@ -101,6 +101,11 @@ void ValidationWorker::run() {
             } else {
                 m_expected = Game::BLACK;
             }
+        }
+        if(m_state.load() == RESUMING) {
+            first.gameQuit();
+            second.gameQuit();
+            m_state.store(RUNNING);
         }
     } while (m_state.load() != FINISHING);
 }

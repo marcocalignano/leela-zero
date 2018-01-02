@@ -33,6 +33,7 @@ class ValidationWorker : public QThread {
 public:
     enum {
         RUNNING = 0,
+        RESUMING,
         FINISHING
     };
     ValidationWorker() = default;
