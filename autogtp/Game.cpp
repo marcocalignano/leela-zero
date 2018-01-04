@@ -41,6 +41,9 @@ Game::Game(const QString& weights, const QString& opt) :
         m_cmdLine = "gnugo --mode gtp --chinese-rules --capture-all-dead --level ";
         m_cmdLine.append(opt);
     }
+    if(weights == "pachi") {
+        m_cmdLine = "./pachi -D -t =5000:15000 threads=4,max_tree_size=100 2>/dev/null";
+    }
     m_fileName = QUuid::createUuid().toRfc4122().toHex();
 }
 

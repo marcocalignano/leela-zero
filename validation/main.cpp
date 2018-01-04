@@ -65,18 +65,25 @@ int main(int argc, char *argv[]) {
         {"o", "gnuGo"},
             "Plays against gnuGo at the given level.",
             "level", "1");
+    QCommandLineOption pachiOption(
+        {"p", "pachi"},
+            "Plays against pachi.",
+            "level");
 
     parser.addOption(gamesNumOption);
     parser.addOption(gpusOption);
     parser.addOption(networkOption);
     parser.addOption(keepSgfOption);
     parser.addOption(gnuGoOption);
+    parser.addOption(pachiOption);
 
     // Process the actual command line arguments given by the user
     parser.process(app);
     QStringList netList = parser.values(networkOption);
     if(parser.isSet(gnuGoOption))
         netList << "GnuGo";
+    if(parser.isSet(pachiOption))
+        netList << "pachi";
     if(netList.count() != 2) {
         parser.showHelp();
     }
