@@ -51,12 +51,12 @@ int main(int argc, char *argv[]) {
             "filename");
     QCommandLineOption binaryOption(
         {"b", "binary"},
-            "Binary to execute for the game",
+            "Binary to execute for the game (default ./leelaz)",
             "filename");
     QCommandLineOption optionsOption(
         {"o", "options"},
-            "Options for the binary (gine with -b)",
-            "filename");
+            "Options for the binary given by -b (default '-g -p 1600 --noponder -t 1 -q -d -r 0 -w')",
+            "opt_string");
     QCommandLineOption gamesNumOption(
         {"g", "gamesNum"},
             "Play 'gamesNum' games on one GPU at the same time.",
@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
             "Save SGF files after each self-play game.",
             "output directory");
 
-    parser.addOption(binaryOption);
-    parser.addOption(optionsOption);
     parser.addOption(gamesNumOption);
     parser.addOption(gpusOption);
     parser.addOption(networkOption);
+    parser.addOption(binaryOption);
+    parser.addOption(optionsOption);
     parser.addOption(keepSgfOption);
 
     // Process the actual command line arguments given by the user
