@@ -551,7 +551,8 @@ void Management::gzipFile(const QString &fileName) {
 }
 
 void Management::saveCurlCmdLine(const QStringList &prog_cmdline, const QString &name) {
-    QFile f("curl_save" + QUuid::createUuid().toRfc4122().toHex() + ".bin");
+    QByteAray uuid = QUuid::createUuid().toRfc4122().toHex();
+    QFile f("curl_save" + uuid + ".bin1");
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return;
     }
@@ -563,7 +564,7 @@ void Management::saveCurlCmdLine(const QStringList &prog_cmdline, const QString 
         out << *it << " " << endl;
         ++it;
     }
-    f.close();
+    f.rename("curl_save" + uuid + ".bin");
 }
 
 void Management::sendAllGames() {
