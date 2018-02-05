@@ -167,12 +167,7 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
         m_gamesThreads[index]->doFinish();
         sendQuit();
     } else {
-        QFileInfo finfo = getNextStored();
-        if (!finfo.fileName().isEmpty()) {
-            m_gamesThreads[index]->order(getWork(finfo));
-        } else {
-            m_gamesThreads[index]->order(getWork());
-        }
+        m_gamesThreads[index]->order(getWork(getNextStored()));
     }
     m_syncMutex.unlock();
 }
