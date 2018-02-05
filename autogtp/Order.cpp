@@ -3,7 +3,7 @@
 #include <QTextStream>
 
 void Order::save(const QString &file) {
-    QFile f(file);
+    QFile f(file + "1");
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return;
     }
@@ -15,7 +15,7 @@ void Order::save(const QString &file) {
         out << key << " " << m_parameters.value(key) << endl;
     }
     out.flush();
-    f.close();       
+    f.rename(file);  
 }
 
 void Order::load(const QString &file) {
