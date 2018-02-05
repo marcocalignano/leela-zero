@@ -38,6 +38,8 @@
 #include "Management.h"
 #include "Console.h"
 
+bool networkConnectionFailure = false;
+
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
     app.setApplicationName("autogtp");
