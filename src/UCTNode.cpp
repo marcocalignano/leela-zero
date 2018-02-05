@@ -181,28 +181,23 @@ void UCTNode::dirichlet_noise(float epsilon, float alpha) {
 
     auto dirichlet_vector = std::vector<float>{};
     std::gamma_distribution<float> gamma(alpha, 1.0f);
+    auto sample_sum = 0.0f;
     for (size_t i = 0; i < child_cnt; i++) {
-        dirichlet_vector.emplace_back(gamma(Random::get_Rng()));
+        auto v = gamma(Random::get_Rng());
+        dirichlet_vector.emplace_back(v);
+        sample_sum += v;
     }
-
-    auto sample_sum = std::accumulate(begin(dirichlet_vector),
-                                      end(dirichlet_vector), 0.0f);
-
     // If the noise vector sums to 0 or a denormal, then don't try to
     // normalize.
     if (sample_sum < std::numeric_limits<float>::min()) {
         return;
     }
 
-    for (auto& v: dirichlet_vector) {
-        v /= sample_sum;
-    }
-
     child_cnt = 0;
     for (auto& child : m_children) {
         auto score = child->get_score();
-        auto eta_a = dirichlet_vector[child_cnt++];
-        score = score * (1 - epsilon) + epsilon * eta_a;
+        auto eta_a = dirichlet_vector[child_cnt++]/sample_sum - score;
+        score += epsilon * eta_a;
         child->set_score(score);
     }
 }
@@ -376,8 +371,7 @@ private:
 
 void UCTNode::sort_children(int color) {
     LOCK(get_mutex(), lock);
-    std::stable_sort(begin(m_children), end(m_children), NodeComp(color));
-    std::reverse(begin(m_children), end(m_children));
+    std::stable_sort(rbegin(m_children), rend(m_children), NodeComp(color));
 }
 
 UCTNode& UCTNode::get_best_root_child(int color) {
@@ -410,8 +404,8 @@ size_t UCTNode::count_nodes() const {
     return nodecount;
 }
 
-// Use this version if you know the child is directly under the parent.
-UCTNode::node_ptr_t UCTNode::find_new_root(const int move) {
+// Used to find new root in UCTSearch
+UCTNode::node_ptr_t UCTNode::find_child(const int move) {
     if (m_has_children) {
         for (auto& child : m_children) {
             if (child->get_move() == move) {
@@ -419,44 +413,9 @@ UCTNode::node_ptr_t UCTNode::find_new_root(const int move) {
             }
         }
     }
-    // Can happen for example if we resigned. Return a clean
-    // root for the next game or position.
-    return std::make_unique<UCTNode>(FastBoard::PASS, 0.0f, 0.5f);
-}
 
-// Use this version if the child could be anywhere.
-void UCTNode::find_new_root(node_ptr_t& root,
-                            const GameState& g_curr,
-                            std::unique_ptr<GameState>&& g_old) {
-    auto found = false;
-
-    if (g_old) {
-        if (g_curr.get_komi() == g_old->get_komi()) {
-            if (g_curr.board.get_hash() == g_old->board.get_hash()) {
-                // root is already set correctly
-                found = true;
-            } else {
-                // search the direct children
-                for (auto& child : root->m_children) {
-                    auto move = child->get_move();
-                    if (g_curr.get_last_move() == move) {
-                        g_old->play_move(move);
-                        if (g_curr.board.get_hash()
-                            == g_old->board.get_hash()) {
-                            root = std::move(child);
-                            found = true;
-                            break;
-                        }
-                        g_old->undo_move();
-                    }
-                }
-            }
-        }
-    }
-
-    if (!found) {
-        root = std::make_unique<UCTNode>(FastBoard::PASS, 0.0f, 0.5f);
-    }
+    // Can happen if we resigned or children are not expanded
+    return nullptr;
 }
 
 UCTNode* UCTNode::get_nopass_child(FastState& state) const {
