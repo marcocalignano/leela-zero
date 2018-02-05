@@ -71,10 +71,18 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 }
 
 Order Management::getWork(const QFileInfo &file) {
-    QTextStream(stdout) << "Got previously stored file" <<endl;
     Order o;
+    QFileInfo finfo;
     o.load(file.fileName());
-    QFile::remove(file.fileName());
+    if (!QFile::remove(file.fileName())) { // if the storefile has been removed by another autogtp instance, remove() will return false
+        finfo = getNextStored();
+        if(!finfo.fileName().isEmpty()) {
+            return getWork(finfo);
+        } else {
+            return getWork();
+        }
+    }
+    QTextStream(stdout) << "Got previously stored file" <<endl;
     return o;
 }
 
@@ -586,7 +594,9 @@ void Management::sendAllGames() {
             in >> tmp;
             lines << tmp;
         }
-        file.close();
+        if (!file.rename(fileInfo.fileName() + "0")) {
+            continue;
+        }
         bool sent = false;
 
         try {
@@ -607,6 +617,8 @@ void Management::sendAllGames() {
             QTextStream(stdout)
                     << "Retrying when next game is finished."
                     << endl;
+            file.rename(fileInfo.fileName());
+            break;
         }
     }
 }
