@@ -73,18 +73,17 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 
 Order Management::getWork(const QFileInfo &file) {
     Order o;
-    QFileInfo finfo;
-    o.load(file.fileName());
-    if (!QFile::remove(file.fileName())) { // if the storefile has been removed by another autogtp instance, remove() will return false
-        finfo = getNextStored();
-        if(!finfo.fileName().isEmpty()) {
-            return getWork(finfo);
+    if(finfo.fileName().isEmpty()) {
+        return getWork();
+    } else {
+        o.load(file.fileName());
+        if (!QFile::remove(file.fileName())) { // if the storefile has been removed by another autogtp instance, remove() will return false
+            return getWork(getNextStored());
         } else {
-            return getWork();
+            QTextStream(stdout) << "Got previously stored file" <<endl;
+            return o;
         }
     }
-    QTextStream(stdout) << "Got previously stored file" <<endl;
-    return o;
 }
 
 void Management::giveAssignments() {
@@ -123,12 +122,7 @@ void Management::giveAssignments() {
                     this,
                     &Management::getResult,
                     Qt::DirectConnection);
-            QFileInfo finfo = getNextStored();
-            if(!finfo.fileName().isEmpty()) {
-                m_gamesThreads[thread_index]->order(getWork(finfo));
-            } else {
-                m_gamesThreads[thread_index]->order(getWork());
-            }            
+            m_gamesThreads[thread_index]->order(getWork(getNextStored()));
             m_gamesThreads[thread_index]->start();
         }
     }
