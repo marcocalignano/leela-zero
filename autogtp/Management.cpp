@@ -29,6 +29,7 @@
 #include "Management.h"
 #include "Game.h"
 
+bool networkConnectionFailure = false;
 
 constexpr int RETRY_DELAY_MIN_SEC = 30;
 constexpr int RETRY_DELAY_MAX_SEC = 60 * 60;  // 1 hour
@@ -401,21 +402,23 @@ Order Management::getWorkInternal(bool tuning) {
 }
 
 Order Management::getWork(bool tuning) {
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
-        try {
-            return getWorkInternal(tuning);
-        } catch (NetworkException ex) {
-            QTextStream(stdout)
-                << "Network connection to server failed." << endl;
-            QTextStream(stdout)
-                << ex.what() << endl;
-            auto retry_delay =
-                std::min<int>(
-                    RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
-                    RETRY_DELAY_MAX_SEC);
-            QTextStream(stdout) << "Retrying in " << retry_delay << " s."
-                                << endl;
-            QThread::sleep(retry_delay);
+    if (!networkConnectionFailure) {
+        for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+            try {
+                return getWorkInternal(tuning);
+            } catch (NetworkException ex) {
+                QTextStream(stdout)
+                    << "Network connection to server failed." << endl;
+                QTextStream(stdout)
+                    << ex.what() << endl;
+                auto retry_delay =
+                    std::min<int>(
+                        RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
+                        RETRY_DELAY_MAX_SEC);
+                QTextStream(stdout) << "Retrying in " << retry_delay << " s."
+                                    << endl;
+                QThread::sleep(retry_delay);
+            }
         }
     }
     QTextStream(stdout) << "Maximum number of retries exceeded. Falling back to previous network."
@@ -572,6 +575,7 @@ void Management::saveCurlCmdLine(const QStringList &prog_cmdline, const QString 
 void Management::sendAllGames() {
     QDir dir;
     QStringList filters;
+    networkConnectionFailure = false;
     filters << "curl_save*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
@@ -617,6 +621,7 @@ void Management::sendAllGames() {
             QTextStream(stdout)
                     << "Retrying when next game is finished."
                     << endl;
+            networkConnectionFailure = true;
             file.rename(fileInfo.fileName());
             break;
         }
