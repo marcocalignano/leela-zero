@@ -29,6 +29,7 @@
 #include "Management.h"
 #include "Game.h"
 
+bool networkConnectionFailure = false;
 
 constexpr int RETRY_DELAY_MIN_SEC = 30;
 constexpr int RETRY_DELAY_MAX_SEC = 60 * 60;  // 1 hour
@@ -72,11 +73,18 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 }
 
 Order Management::getWork(const QFileInfo &file) {
-    QTextStream(stdout) << "Got previously stored file" <<endl;
     Order o;
-    o.load(file.fileName());
-    QFile::remove(file.fileName());
-    return o;
+    if(finfo.fileName().isEmpty()) {
+        return getWork();
+    } else {
+        o.load(file.fileName());
+        if (!QFile::remove(file.fileName())) { // if the storefile has been removed by another autogtp instance, remove() will return false
+            return getWork(getNextStored());
+        } else {
+            QTextStream(stdout) << "Got previously stored file" <<endl;
+            return o;
+        }
+    }
 }
 
 void Management::giveAssignments() {
@@ -115,12 +123,7 @@ void Management::giveAssignments() {
                     this,
                     &Management::getResult,
                     Qt::DirectConnection);
-            QFileInfo finfo = getNextStored();
-            if(!finfo.fileName().isEmpty()) {
-                m_gamesThreads[thread_index]->order(getWork(finfo));
-            } else {
-                m_gamesThreads[thread_index]->order(getWork());
-            }            
+            m_gamesThreads[thread_index]->order(getWork(getNextStored()));
             m_gamesThreads[thread_index]->start();
         }
     }
@@ -164,18 +167,13 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
     if(m_gamesLeft == 0) {
         m_gamesThreads[index]->doFinish();
         if(m_threadsLeft > 1) {
-            --m_threadsLeft;
+            
+          _threadsLeft;
         } else {
             sendQuit();
         }
     } else {
-        if(m_gamesLeft > 0) --m_gamesLeft;
-        QFileInfo finfo = getNextStored();
-        if (!finfo.fileName().isEmpty()) {
-            m_gamesThreads[index]->order(getWork(finfo));
-        } else {
-            m_gamesThreads[index]->order(getWork());
-        }
+        m_gamesThreads[index]->order(getWork(getNextStored()));
     }
     m_syncMutex.unlock();
 }
@@ -399,21 +397,23 @@ Order Management::getWorkInternal(bool tuning) {
 }
 
 Order Management::getWork(bool tuning) {
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
-        try {
-            return getWorkInternal(tuning);
-        } catch (NetworkException ex) {
-            QTextStream(stdout)
-                << "Network connection to server failed." << endl;
-            QTextStream(stdout)
-                << ex.what() << endl;
-            auto retry_delay =
-                std::min<int>(
-                    RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
-                    RETRY_DELAY_MAX_SEC);
-            QTextStream(stdout) << "Retrying in " << retry_delay << " s."
-                                << endl;
-            QThread::sleep(retry_delay);
+    if (!networkConnectionFailure) {
+        for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+            try {
+                return getWorkInternal(tuning);
+            } catch (NetworkException ex) {
+                QTextStream(stdout)
+                    << "Network connection to server failed." << endl;
+                QTextStream(stdout)
+                    << ex.what() << endl;
+                auto retry_delay =
+                    std::min<int>(
+                        RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
+                        RETRY_DELAY_MAX_SEC);
+                QTextStream(stdout) << "Retrying in " << retry_delay << " s."
+                                    << endl;
+                QThread::sleep(retry_delay);
+            }
         }
     }
     QTextStream(stdout) << "Maximum number of retries exceeded. Falling back to previous network."
@@ -552,7 +552,8 @@ void Management::gzipFile(const QString &fileName) {
 }
 
 void Management::saveCurlCmdLine(const QStringList &prog_cmdline, const QString &name) {
-    QFile f("curl_save" + QUuid::createUuid().toRfc4122().toHex() + ".bin");
+    QByteAray uuid = QUuid::createUuid().toRfc4122().toHex();
+    QFile f("curl_save" + uuid + ".bin1");
     if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
         return;
     }
@@ -564,12 +565,13 @@ void Management::saveCurlCmdLine(const QStringList &prog_cmdline, const QString 
         out << *it << " " << endl;
         ++it;
     }
-    f.close();
+    f.rename("curl_save" + uuid + ".bin");
 }
 
 void Management::sendAllGames() {
     QDir dir;
     QStringList filters;
+    networkConnectionFailure = false;
     filters << "curl_save*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
@@ -592,7 +594,9 @@ void Management::sendAllGames() {
             in >> tmp;
             lines << tmp;
         }
-        file.close();
+        if (!file.rename(fileInfo.fileName() + "0")) {
+            continue;
+        }
         bool sent = false;
 
         try {
@@ -613,6 +617,9 @@ void Management::sendAllGames() {
             QTextStream(stdout)
                     << "Retrying when next game is finished."
                     << endl;
+            networkConnectionFailure = true;
+            file.rename(fileInfo.fileName());
+            break;
         }
     }
 }
