@@ -35,6 +35,7 @@ constexpr int RETRY_DELAY_MIN_SEC = 30;
 constexpr int RETRY_DELAY_MAX_SEC = 60 * 60;  // 1 hour
 constexpr int MAX_RETRIES = 3;           // Stop retrying after 3 times
 const QString Leelaz_min_version = "0.11";
+bool connectionFail = false;
 
 Management::Management(const int gpus,
                        const int games,
@@ -321,6 +322,7 @@ Order Management::getWorkInternal(bool tuning) {
     if (curl.exitCode()) {
         throw NetworkException("Curl returned non-zero exit code "
                                + std::to_string(curl.exitCode()));
+        connectionFail = true;
         return o;
     }
     QJsonDocument doc;
@@ -498,6 +500,7 @@ void Management::fetchNetwork(const QString &name) {
     if (curl.exitCode()) {
         throw NetworkException("Curl returned non-zero exit code "
                                + std::to_string(curl.exitCode()));
+        // maybe also set connectionFail = true? but downloading large file is easier to fail
     }
 
     QByteArray output = curl.readAllStandardOutput();
@@ -586,7 +589,7 @@ void Management::sendAllGames() {
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
     QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); ++i) {
+    for (int i = 0; i < list.size() && !connectionFail; ++i) {
         QFileInfo fileInfo = list.at(i);
         QLockFile lf(fileInfo.fileName()+".lock");
         if (!lf.tryLock(10)) {
@@ -652,6 +655,7 @@ bool Management::sendCurl(const QStringList &lines) {
         QTextStream(stdout) << curl.readAllStandardOutput();
         throw NetworkException("Curl returned non-zero exit code "
                                    + std::to_string(curl.exitCode()));
+        connectionFail = true;
         return false;
     }
     QTextStream(stdout) << curl.readAllStandardOutput();
@@ -693,6 +697,7 @@ void Management::uploadResult(const QMap<QString,QString> &r, const QMap<QString
     prog_cmdline.append("-F sgf=@"+ r["file"] + ".sgf.gz");
     prog_cmdline.append("http://zero.sjeng.org/submit-match");
 
+    connectionFail = false;
     bool sent = false;
     for (auto retries = 0; retries < MAX_RETRIES; retries++) {
         try {
@@ -745,6 +750,7 @@ void Management::uploadData(const QMap<QString,QString> &r, const QMap<QString,Q
     prog_cmdline.append("-F trainingdata=@" + r["file"] + ".txt.0.gz");
     prog_cmdline.append("http://zero.sjeng.org/submit");
 
+    connectionFail = false;
     bool sent = false;
     for (auto retries = 0; retries < MAX_RETRIES; retries++) {
         try {
