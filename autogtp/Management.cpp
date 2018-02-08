@@ -410,7 +410,7 @@ Order Management::getWorkInternal(bool tuning) {
 }
 
 Order Management::getWork(bool tuning) {
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             return getWorkInternal(tuning);
         } catch (NetworkException ex) {
@@ -418,6 +418,9 @@ Order Management::getWork(bool tuning) {
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
@@ -700,15 +703,18 @@ void Management::uploadResult(const QMap<QString,QString> &r, const QMap<QString
 
     connectionFail = false;
     bool sent = false;
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             sent = sendCurl(prog_cmdline);
-            break;
+            break; // actually no retries?
         } catch (NetworkException ex) {
             QTextStream(stdout)
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
@@ -756,12 +762,15 @@ void Management::uploadData(const QMap<QString,QString> &r, const QMap<QString,Q
     for (auto retries = 0; retries < MAX_RETRIES; retries++) {
         try {
             sent = sendCurl(prog_cmdline);
-            break;
+            break; // actually no retries?
         } catch (NetworkException ex) {
             QTextStream(stdout)
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
