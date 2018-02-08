@@ -77,12 +77,16 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 Order Management::getWork(const QFileInfo &file) {
     QTextStream(stdout) << "Got previously stored file" <<endl;
     Order o;
-    o.load(file.fileName());
-    QFile::remove(file.fileName());
-    m_lockFile->unlock();
-    delete m_lockFile;
-    m_lockFile = nullptr;
-    return o;
+    if(!file.fileName().isEmpty()) {
+        o.load(file.fileName());
+        QFile::remove(file.fileName());
+        m_lockFile->unlock();
+        delete m_lockFile;
+        m_lockFile = nullptr;
+        return o;
+    } else {
+        return getWork();
+    }
 }
 
 void Management::giveAssignments() {
@@ -121,12 +125,7 @@ void Management::giveAssignments() {
                     this,
                     &Management::getResult,
                     Qt::DirectConnection);
-            QFileInfo finfo = getNextStored();
-            if(!finfo.fileName().isEmpty()) {
-                m_gamesThreads[thread_index]->order(getWork(finfo));
-            } else {
-                m_gamesThreads[thread_index]->order(getWork());
-            }            
+            m_gamesThreads[thread_index]->order(getWork(getNextStored()));
             m_gamesThreads[thread_index]->start();
         }
     }
@@ -176,12 +175,7 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
         }
     } else {
         if(m_gamesLeft > 0) --m_gamesLeft;
-        QFileInfo finfo = getNextStored();
-        if (!finfo.fileName().isEmpty()) {
-            m_gamesThreads[index]->order(getWork(finfo));
-        } else {
-            m_gamesThreads[index]->order(getWork());
-        }
+        m_gamesThreads[index]->order(getWork(getNextStored()));
     }
     m_syncMutex.unlock();
 }
