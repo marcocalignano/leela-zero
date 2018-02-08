@@ -588,6 +588,7 @@ void Management::sendAllGames() {
     filters << "curl_save*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
+    dir.setSorting(QDir::Time);
     QFileInfoList list = dir.entryInfoList();
     for (int i = 0; i < list.size() && !connectionFail; ++i) {
         QFileInfo fileInfo = list.at(i);
@@ -783,5 +784,6 @@ void Management::checkStoredGames() {
     filters << "storefile*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
+    dir.setSorting(QDir::Time);
     m_storedFiles = dir.entryInfoList();
 }
