@@ -36,6 +36,7 @@ constexpr int RETRY_DELAY_MAX_SEC = 60 * 60;  // 1 hour
 constexpr int MAX_RETRIES = 3;           // Stop retrying after 3 times
 const QString Leelaz_min_version = "0.11";
 bool connectionFail = false;
+bool selfPlayOnly = false;
 
 Management::Management(const int gpus,
                        const int games,
@@ -304,7 +305,7 @@ Order Management::getWorkInternal(bool tuning) {
 #endif
     prog_cmdline.append(" -s -J");
     prog_cmdline.append(" http://zero.sjeng.org/get-task/");
-    if (tuning) {
+    if (tuning || selfPlayOnly) {
         prog_cmdline.append("0");
     } else {
         prog_cmdline.append(QString::number(AUTOGTP_VERSION));
