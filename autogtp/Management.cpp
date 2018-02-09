@@ -75,9 +75,9 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 }
 
 Order Management::getWork(const QFileInfo &file) {
-    QTextStream(stdout) << "Got previously stored file" <<endl;
     Order o;
     if(!file.fileName().isEmpty()) {
+        QTextStream(stdout) << "Got previously stored file" <<endl;
         o.load(file.fileName());
         QFile::remove(file.fileName());
         m_lockFile->unlock();
@@ -753,7 +753,7 @@ void Management::uploadData(const QMap<QString,QString> &r, const QMap<QString,Q
 
     connectionFail = false;
     bool sent = false;
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             sent = sendCurl(prog_cmdline);
             break; // actually no retries?
