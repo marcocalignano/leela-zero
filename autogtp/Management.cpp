@@ -35,6 +35,8 @@ constexpr int RETRY_DELAY_MIN_SEC = 30;
 constexpr int RETRY_DELAY_MAX_SEC = 60 * 60;  // 1 hour
 constexpr int MAX_RETRIES = 3;           // Stop retrying after 3 times
 const QString Leelaz_min_version = "0.11";
+bool connectionFail = false;
+bool selfPlayOnly = false;
 
 Management::Management(const int gpus,
                        const int games,
@@ -74,14 +76,18 @@ void Management::runTuningProcess(const QString &tuneCmdLine) {
 }
 
 Order Management::getWork(const QFileInfo &file) {
-    QTextStream(stdout) << "Got previously stored file" <<endl;
     Order o;
-    o.load(file.fileName());
-    QFile::remove(file.fileName());
-    m_lockFile->unlock();
-    delete m_lockFile;
-    m_lockFile = nullptr;
-    return o;
+    if(!file.fileName().isEmpty()) {
+        QTextStream(stdout) << "Got previously stored file" <<endl;
+        o.load(file.fileName());
+        QFile::remove(file.fileName());
+        m_lockFile->unlock();
+        delete m_lockFile;
+        m_lockFile = nullptr;
+        return o;
+    } else {
+        return getWork();
+    }
 }
 
 void Management::giveAssignments() {
@@ -120,12 +126,7 @@ void Management::giveAssignments() {
                     this,
                     &Management::getResult,
                     Qt::DirectConnection);
-            QFileInfo finfo = getNextStored();
-            if(!finfo.fileName().isEmpty()) {
-                m_gamesThreads[thread_index]->order(getWork(finfo));
-            } else {
-                m_gamesThreads[thread_index]->order(getWork());
-            }            
+            m_gamesThreads[thread_index]->order(getWork(getNextStored()));
             m_gamesThreads[thread_index]->start();
         }
     }
@@ -175,12 +176,7 @@ void Management::getResult(Order ord, Result res, int index, int duration) {
         }
     } else {
         if(m_gamesLeft > 0) --m_gamesLeft;
-        QFileInfo finfo = getNextStored();
-        if (!finfo.fileName().isEmpty()) {
-            m_gamesThreads[index]->order(getWork(finfo));
-        } else {
-            m_gamesThreads[index]->order(getWork());
-        }
+        m_gamesThreads[index]->order(getWork(getNextStored()));
     }
     m_syncMutex.unlock();
 }
@@ -309,7 +305,7 @@ Order Management::getWorkInternal(bool tuning) {
 #endif
     prog_cmdline.append(" -s -J");
     prog_cmdline.append(" http://zero.sjeng.org/get-task/");
-    if (tuning) {
+    if (tuning || selfPlayOnly) {
         prog_cmdline.append("0");
     } else {
         prog_cmdline.append(QString::number(AUTOGTP_VERSION));
@@ -321,6 +317,7 @@ Order Management::getWorkInternal(bool tuning) {
     if (curl.exitCode()) {
         throw NetworkException("Curl returned non-zero exit code "
                                + std::to_string(curl.exitCode()));
+        connectionFail = true;
         return o;
     }
     QJsonDocument doc;
@@ -408,7 +405,7 @@ Order Management::getWorkInternal(bool tuning) {
 }
 
 Order Management::getWork(bool tuning) {
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             return getWorkInternal(tuning);
         } catch (NetworkException ex) {
@@ -416,6 +413,9 @@ Order Management::getWork(bool tuning) {
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
@@ -498,6 +498,7 @@ void Management::fetchNetwork(const QString &name) {
     if (curl.exitCode()) {
         throw NetworkException("Curl returned non-zero exit code "
                                + std::to_string(curl.exitCode()));
+        // maybe also set connectionFail = true? but downloading large file is easier to fail
     }
 
     QByteArray output = curl.readAllStandardOutput();
@@ -585,8 +586,9 @@ void Management::sendAllGames() {
     filters << "curl_save*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
+    dir.setSorting(QDir::Time);
     QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); ++i) {
+    for (int i = 0; i < list.size() && !connectionFail; ++i) {
         QFileInfo fileInfo = list.at(i);
         QLockFile lf(fileInfo.fileName()+".lock");
         if (!lf.tryLock(10)) {
@@ -652,6 +654,7 @@ bool Management::sendCurl(const QStringList &lines) {
         QTextStream(stdout) << curl.readAllStandardOutput();
         throw NetworkException("Curl returned non-zero exit code "
                                    + std::to_string(curl.exitCode()));
+        connectionFail = true;
         return false;
     }
     QTextStream(stdout) << curl.readAllStandardOutput();
@@ -693,16 +696,20 @@ void Management::uploadResult(const QMap<QString,QString> &r, const QMap<QString
     prog_cmdline.append("-F sgf=@"+ r["file"] + ".sgf.gz");
     prog_cmdline.append("http://zero.sjeng.org/submit-match");
 
+    connectionFail = false;
     bool sent = false;
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             sent = sendCurl(prog_cmdline);
-            break;
+            break; // actually no retries?
         } catch (NetworkException ex) {
             QTextStream(stdout)
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
@@ -745,16 +752,20 @@ void Management::uploadData(const QMap<QString,QString> &r, const QMap<QString,Q
     prog_cmdline.append("-F trainingdata=@" + r["file"] + ".txt.0.gz");
     prog_cmdline.append("http://zero.sjeng.org/submit");
 
+    connectionFail = false;
     bool sent = false;
-    for (auto retries = 0; retries < MAX_RETRIES; retries++) {
+    for (auto retries = 0; retries <= MAX_RETRIES; retries++) {
         try {
             sent = sendCurl(prog_cmdline);
-            break;
+            break; // actually no retries?
         } catch (NetworkException ex) {
             QTextStream(stdout)
                 << "Network connection to server failed." << endl;
             QTextStream(stdout)
                 << ex.what() << endl;
+            if (retries == MAX_RETRIES) {
+                break;
+            }
             auto retry_delay =
                 std::min<int>(
                     RETRY_DELAY_MIN_SEC * std::pow(1.5, retries),
@@ -777,5 +788,6 @@ void Management::checkStoredGames() {
     filters << "storefile*.bin";
     dir.setNameFilters(filters);
     dir.setFilter(QDir::Files | QDir::NoSymLinks);
+    dir.setSorting(QDir::Time);
     m_storedFiles = dir.entryInfoList();
 }
